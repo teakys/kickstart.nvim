@@ -636,7 +636,7 @@ require('lazy').setup({
         cssls = {},
         html = {},
         twiggy_language_server = {},
-        emmet_ls = {},
+        emmet_language_server = {},
         ts_ls = {},
         --
 
@@ -943,7 +943,7 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
