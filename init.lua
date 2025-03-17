@@ -229,12 +229,6 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'ThePrimeagen/vim-be-good',
-  {
-    'nvzone/typr',
-    dependencies = 'nvzone/volt',
-    opts = {},
-    cmd = { 'Typr', 'TyprStats' },
-  },
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
 
   -- NOTE: Plugins can also be added by using a table,
@@ -638,6 +632,8 @@ require('lazy').setup({
         twiggy_language_server = {},
         emmet_language_server = {},
         ts_ls = {},
+        phpactor = {},
+
         --
 
         lua_ls = {
@@ -689,7 +685,6 @@ require('lazy').setup({
       }
     end,
   },
-
   { -- Autoformat
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
@@ -866,6 +861,10 @@ require('lazy').setup({
       vim.cmd.hi 'Comment gui=none'
     end,
   },
+  {
+    'christoomey/vim-tmux-navigator',
+    lazy = false,
+  },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -906,6 +905,26 @@ require('lazy').setup({
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
+  },
+  {
+    'ThePrimeagen/harpoon',
+    branch = 'harpoon2',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-telescope/telescope.nvim',
+    },
+  },
+  {
+    'mbbill/undotree',
+  },
+  {
+    'NeogitOrg/neogit',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'sindrets/diffview.nvim',
+      'nvim-telescope/telescope.nvim',
+    },
+    config = true,
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
@@ -982,7 +1001,6 @@ require('lazy').setup({
 })
 
 require('rose-pine').setup { styles = { transparency = true } }
-
 --opts
 
 vim.opt.guicursor = ''
@@ -1041,5 +1059,65 @@ vim.keymap.set('n', '<leader>j', '<cmd>lprev<CR>zz')
 
 vim.keymap.set('n', '<leader>s', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
 
+vim.keymap.set('n', '<leader>gs', '<cmd>Neogit<CR>')
+
+vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+local harpoon = require 'harpoon'
+-- REQUIRED
+harpoon:setup()
+-- REQUIRED
+
+vim.keymap.set('n', '<leader>l', function()
+  harpoon:list():add()
+end)
+vim.keymap.set('n', '<C-s>', function()
+  harpoon.ui:toggle_quick_menu(harpoon:list())
+end)
+
+vim.keymap.set('n', '<C-n>', function()
+  harpoon:list():select(1)
+end)
+vim.keymap.set('n', '<C-e>', function()
+  harpoon:list():select(2)
+end)
+vim.keymap.set('n', '<C-i>', function()
+  harpoon:list():select(3)
+end)
+vim.keymap.set('n', '<C-o>', function()
+  harpoon:list():select(4)
+end)
+
+-- Toggle previous & next buffers stored within Harpoon list
+vim.keymap.set('n', '<C-S-P>', function()
+  harpoon:list():prev()
+end)
+vim.keymap.set('n', '<C-S-N>', function()
+  harpoon:list():next()
+end)
+
+local conf = require('telescope.config').values
+local function toggle_telescope(harpoon_files)
+  local file_paths = {}
+  for _, item in ipairs(harpoon_files.items) do
+    table.insert(file_paths, item.value)
+  end
+
+  require('telescope.pickers')
+    .new({}, {
+      prompt_title = 'Harpoon',
+      finder = require('telescope.finders').new_table {
+        results = file_paths,
+      },
+      previewer = conf.file_previewer {},
+      sorter = conf.generic_sorter {},
+    })
+    :find()
+end
+
+vim.keymap.set('n', '<C-k>', function()
+  toggle_telescope(harpoon:list())
+end, { desc = 'Open harpoon window' })
