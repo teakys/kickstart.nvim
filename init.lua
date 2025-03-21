@@ -926,6 +926,43 @@ require('lazy').setup({
     },
     config = true,
   },
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {},
+  },
+  {
+    'iamcco/markdown-preview.nvim',
+    build = 'cd app && npm install',
+    ft = 'markdown',
+    lazy = true,
+    keys = { { 'n', '<cmd>MarkdownPreviewToggle<cr>', desc = 'Markdown Preview' } },
+    config = function()
+      vim.g.mkdp_auto_close = true
+      vim.g.mkdp_open_to_the_world = false
+      vim.g.mkdp_open_ip = '127.0.0.1'
+      vim.g.mkdp_port = '8888'
+      vim.g.mkdp_browser = ''
+      vim.g.mkdp_echo_preview_url = true
+      vim.g.mkdp_page_title = '${name}'
+    end,
+  },
+  {
+    'folke/twilight.nvim',
+    opts = {},
+  },
+  {
+    'folke/zen-mode.nvim',
+    opts = {},
+  },
+  {
+    'preservim/vim-pencil',
+    config = function() end,
+  },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
@@ -1060,11 +1097,46 @@ vim.keymap.set('n', '<leader>j', '<cmd>lprev<CR>zz')
 vim.keymap.set('n', '<leader>s', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
 
 vim.keymap.set('n', '<leader>gs', '<cmd>Neogit<CR>')
+vim.keymap.set('n', '<leader>zm', '<cmd>ZenMode<CR>')
+vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>')
 
 vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+require('zen-mode').setup {
+  on_open = function(_)
+    vim.cmd 'Pencil'
+    --vim.opt.colorcolumn = '0'
+    vim.fn.system [[tmux set status off]]
+    vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z]]
+  end,
+  on_close = function(_)
+    vim.fn.system [[tmux set status on]]
+    vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z]]
+  end,
+  window = {
+    width = 0.70,
+    options = {
+      signcolumn = 'no',
+      number = false,
+      relativenumber = false,
+      cursorline = false,
+      cursorcolumn = false,
+      foldcolumn = '0',
+    },
+  },
+  plugins = {
+    options = {
+      enabled = true,
+      showcmd = false,
+      laststatus = 0,
+    },
+    tmux = { enabled = false },
+    gitsigns = { enabled = false },
+  },
+}
 
 local harpoon = require 'harpoon'
 -- REQUIRED
