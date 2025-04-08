@@ -959,6 +959,12 @@ require('lazy').setup({
     opts = {},
   },
   {
+    'nvzone/typr',
+    dependencies = 'nvzone/volt',
+    opts = {},
+    cmd = { 'Typr', 'TyprStats' },
+  },
+  {
     'preservim/vim-pencil',
     config = function() end,
   },
