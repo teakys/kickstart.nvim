@@ -940,7 +940,6 @@ require('lazy').setup({
     build = 'cd app && npm install',
     ft = 'markdown',
     lazy = true,
-    keys = { { 'n', '<cmd>MarkdownPreviewToggle<cr>', desc = 'Markdown Preview' } },
     config = function()
       vim.g.mkdp_auto_close = true
       vim.g.mkdp_open_to_the_world = false
@@ -951,10 +950,10 @@ require('lazy').setup({
       vim.g.mkdp_page_title = '${name}'
     end,
   },
-  {
-    'folke/twilight.nvim',
-    opts = {},
-  },
+  -- {
+  --   'folke/twilight.nvim',
+  --   opts = {},
+  -- },
   {
     'folke/zen-mode.nvim',
     opts = {},
@@ -1108,7 +1107,7 @@ vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
 require('zen-mode').setup {
   on_open = function(_)
     vim.cmd 'Pencil'
-    --vim.opt.colorcolumn = '0'
+    -- vim.opt.colorcolumn = '0'
     vim.fn.system [[tmux set status off]]
     vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z]]
   end,
@@ -1117,12 +1116,12 @@ require('zen-mode').setup {
     vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z]]
   end,
   window = {
-    width = 0.70,
+    width = 0.80,
     options = {
       signcolumn = 'no',
       number = false,
-      relativenumber = false,
-      cursorline = false,
+      --relativenumber = false,
+      --cursorline = false,
       cursorcolumn = false,
       foldcolumn = '0',
     },
