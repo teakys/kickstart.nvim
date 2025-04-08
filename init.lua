@@ -1114,6 +1114,7 @@ require('zen-mode').setup {
   on_close = function(_)
     vim.fn.system [[tmux set status on]]
     vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z]]
+    vim.cmd 'PencilOff'
   end,
   window = {
     width = 0.80,
