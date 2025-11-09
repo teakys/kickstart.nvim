@@ -629,9 +629,9 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         cssls = {},
         html = {},
+        ts_ls = {},
         twiggy_language_server = {},
         emmet_language_server = {},
-        ts_ls = {},
         phpactor = {},
 
         --
@@ -685,9 +685,9 @@ require('lazy').setup({
       }
     end,
   },
+
   { -- Autoformat
     'stevearc/conform.nvim',
-    event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
     keys = {
       {
@@ -719,6 +719,14 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        vue = { 'prettierd' },
+        javascript = { 'prettierd' },
+        typescript = { 'prettierd' },
+        css = { 'prettierd' },
+        html = { 'prettierd' },
+        json = { 'prettierd' },
+        yaml = { 'prettierd' },
+        markdown = { 'prettierd' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -865,6 +873,23 @@ require('lazy').setup({
     'christoomey/vim-tmux-navigator',
     lazy = false,
   },
+  {
+    'f-person/git-blame.nvim',
+    -- load the plugin at startup
+    event = 'VeryLazy',
+    -- Because of the keys part, you will be lazy loading this plugin.
+    -- The plugin will only load once one of the keys is used.
+    -- If you want to load the plugin at startup, add something like event = "VeryLazy",
+    -- or lazy = false. One of both options will work.
+    opts = {
+      -- your configuration comes here
+      -- for example
+      enabled = false, -- if you want to enable the plugin
+      message_template = ' <summary> • <date> • <author> • <<sha>>', -- template for the blame message, check the Message template section for more options
+      date_format = '%m-%d-%Y %H:%M:%S', -- template for the date, check Date format section for more options
+      virtual_text_column = 1, -- virtual text start column, check Start virtual text at column section for more options
+    },
+  },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -927,6 +952,26 @@ require('lazy').setup({
     config = true,
   },
   {
+    'kdheepak/lazygit.nvim',
+    lazy = true,
+    cmd = {
+      'LazyGit',
+      'LazyGitConfig',
+      'LazyGitCurrentFile',
+      'LazyGitFilter',
+      'LazyGitFilterCurrentFile',
+    },
+    -- optional for floating window border decoration
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+    -- setting the keybinding for LazyGit with 'keys' is recommended in
+    -- order to load the plugin when the command is run for the first time
+    keys = {
+      { '<leader>lg', '<cmd>LazyGit<cr>', desc = 'LazyGit' },
+    },
+  },
+  {
     'MeanderingProgrammer/render-markdown.nvim',
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
     -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
@@ -954,20 +999,11 @@ require('lazy').setup({
   --   'folke/twilight.nvim',
   --   opts = {},
   -- },
-  {
-    'folke/zen-mode.nvim',
-    opts = {},
-  },
-  {
-    'nvzone/typr',
-    dependencies = 'nvzone/volt',
-    opts = {},
-    cmd = { 'Typr', 'TyprStats' },
-  },
-  {
-    'preservim/vim-pencil',
-    config = function() end,
-  },
+  -- {
+  --   'pmizio/typescript-tools.nvim',
+  --   dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+  --   opts = {},
+  -- },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
@@ -1092,7 +1128,7 @@ vim.keymap.set({ 'n', 'v' }, '<leader>d', [["_d]])
 
 vim.keymap.set('n', 'Q', '<nop>')
 vim.keymap.set('n', '<C-f>', '<cmd>silent !tmux neww tmux-sessionizer<CR>')
-vim.keymap.set('n', '<leader>f', vim.lsp.buf.format)
+-- vim.keymap.set('n', '<leader>f', vim.lsp.buf.format)
 
 vim.keymap.set('n', '<C-k>', '<cmd>cnext<CR>zz')
 vim.keymap.set('n', '<C-j>', '<cmd>cprev<CR>zz')
@@ -1102,47 +1138,62 @@ vim.keymap.set('n', '<leader>j', '<cmd>lprev<CR>zz')
 vim.keymap.set('n', '<leader>s', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
 
 vim.keymap.set('n', '<leader>gs', '<cmd>Neogit<CR>')
-vim.keymap.set('n', '<leader>zm', '<cmd>ZenMode<CR>')
+-- vim.keymap.set('n', '<leader>zm', '<cmd>ZenMode<CR>')
 vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>')
 
 vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
 
+local lspconfig = require 'lspconfig'
+
+lspconfig.ts_ls.setup {
+  init_options = {
+    plugins = { -- I think this was my breakthrough that made it work
+      {
+        name = '@vue/typescript-plugin',
+        location = '/usr/local/lib/node_modules/@vue/language-server',
+        languages = { 'vue' },
+      },
+    },
+  },
+  filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue' },
+}
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
 
-require('zen-mode').setup {
-  on_open = function(_)
-    vim.cmd 'Pencil'
-    -- vim.opt.colorcolumn = '0'
-    vim.fn.system [[tmux set status off]]
-    vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z]]
-  end,
-  on_close = function(_)
-    vim.fn.system [[tmux set status on]]
-    vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z]]
-    vim.cmd 'PencilOff'
-  end,
-  window = {
-    width = 0.80,
-    options = {
-      signcolumn = 'no',
-      number = false,
-      --relativenumber = false,
-      --cursorline = false,
-      cursorcolumn = false,
-      foldcolumn = '0',
-    },
-  },
-  plugins = {
-    options = {
-      enabled = true,
-      showcmd = false,
-      laststatus = 0,
-    },
-    tmux = { enabled = false },
-    gitsigns = { enabled = false },
-  },
-}
+-- require('zen-mode').setup {
+--   on_open = function(_)
+--     vim.cmd 'Pencil'
+--     -- vim.opt.colorcolumn = '0'
+--     vim.fn.system [[tmux set status off]]
+--     vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z]]
+--   end,
+--   on_close = function(_)
+--     vim.fn.system [[tmux set status on]]
+--     vim.fn.system [[tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z]]
+--     vim.cmd 'PencilOff'
+--   end,
+--   window = {
+--     width = 0.80,
+--     options = {
+--       signcolumn = 'no',
+--       number = false,
+--       --relativenumber = false,
+--       --cursorline = false,
+--       cursorcolumn = false,
+--       foldcolumn = '0',
+--     },
+--   },
+--   plugins = {
+--     options = {
+--       enabled = true,
+--       showcmd = false,
+--       laststatus = 0,
+--     },
+--     tmux = { enabled = false },
+--     gitsigns = { enabled = false },
+--   },
+-- }
 
 local harpoon = require 'harpoon'
 -- REQUIRED
@@ -1178,6 +1229,23 @@ vim.keymap.set('n', '<C-S-N>', function()
 end)
 
 local conf = require('telescope.config').values
+local lspconfig = require 'lspconfig'
+
+lspconfig.volar.setup {
+  filetypes = { 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'html' },
+  init_options = {
+    vue = {
+      hybridMode = false,
+    },
+  },
+}
+
+require('lspconfig').emmet_ls.setup {
+  -- You might need to specify the command if it's not in your PATH
+  cmd = { 'emmet-language-server', '--stdio' },
+  filetypes = { 'html', 'twig', 'css', 'scss', 'less', 'vue' }, -- Add other filetypes as needed
+  -- Add any other desired settings
+}
 local function toggle_telescope(harpoon_files)
   local file_paths = {}
   for _, item in ipairs(harpoon_files.items) do
@@ -1199,3 +1267,35 @@ end
 vim.keymap.set('n', '<C-k>', function()
   toggle_telescope(harpoon:list())
 end, { desc = 'Open harpoon window' })
+vim.keymap.set('n', 'E', function()
+  vim.diagnostic.open_float {
+    border = 'rounded',
+    -- You can also add other options:
+    -- scope = "cursor",
+    -- prefix = " ● ",
+  }
+end, { desc = 'Show diagnostics under cursor' })
+-- vim.keymap.set('n', '<leader>H', vim.lsp.buf.hover(), { buffer=0 })
+
+vim.keymap.set('n', 'K', function()
+  local clients = vim.lsp.get_clients { bufnr = 0 }
+  for _, client in ipairs(clients) do
+    if client.name == 'ts_ls' then
+      -- Use the client directly for hover
+      local params = vim.lsp.util.make_position_params(0, 'utf-16')
+      client.request('textDocument/hover', params, function(err, result, ctx, config)
+        if err then
+          return
+        end
+        if result and result.contents then
+          vim.lsp.util.open_floating_preview(vim.lsp.util.convert_input_to_markdown_lines(result.contents), 'markdown', { border = 'rounded' })
+        end
+      end, 0)
+      return
+    end
+  end
+  print 'tsserver not available for hover'
+end, { desc = 'Vue-aware hover' })
+
+vim.keymap.set('n', '<leader>gb', '<cmd>GitBlameToggle<cr>')
+-- vim.lsp.set_log_level 'debug'
